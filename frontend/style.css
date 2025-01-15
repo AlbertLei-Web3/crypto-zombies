@@ -1,0 +1,54 @@
+.zombie-image {
+    position: relative;
+    width: 200px; /* 设定整个僵尸图片的宽度 */
+    height: 400px; /* 设定整个僵尸图片的高度 */
+  }
+  
+  .zombie-head {
+    position: absolute;
+    top: 10px; /* 根据需要调整 */
+    left: 50px; 
+    width: 200px; /* 设定头部的宽度 */
+    height: auto;
+  }
+  
+  .zombie-eyes {
+    position: absolute;
+    top: 70px;
+    left: 60px;
+    width: 60px;
+    height: auto;
+  }
+  
+  .zombie-mouth {
+    position: absolute;
+    top: 120px;
+    left: 65px;
+    width: 50px;
+    height: auto;
+  }
+  
+  .zombie-shirt {
+    position: absolute;
+    top: 200px;
+    left: 40px;
+    width: 120px;
+    height: auto;
+  }
+  
+  .zombie-hand {
+    position: absolute;
+    top: 250px;
+    left: 20px;
+    width: 40px;
+    height: auto;
+  }
+  
+  .zombie-legs {
+    position: absolute;
+    top: 300px;
+    left: 50px;
+    width: 100px;
+    height: auto;
+  }
+  
