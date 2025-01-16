@@ -3,240 +3,58 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>CryptoZombies Front-End</title>
-    <script src="web3.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="./ABI/cryptozombies_abi.js"></script>
-    <script src="app.js" type="module"></script>
-    <link rel="stylesheet" href="./style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoZombies - NFT Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <div id="zombies">
-        <button id="createZombie">Create Zombie</button>
-        <button id="refreshZombies">Refresh Zombies List</button>
-        <ul id="zombieList"></ul>
+    <div class="landing-page">
+        <!-- 背景动画效果 -->
+        <div class="fog-container">
+            <div class="fog-img fog-img-first"></div>
+            <div class="fog-img fog-img-second"></div>
+        </div>
+
+        <!-- 主要内容 -->
+        <main class="main-content">
+            <header class="game-header">
+                <h1 class="title">CryptoZombies</h1>
+                <p class="subtitle">Build Your Undead NFT Army</p>
+            </header>
+
+            <!-- 钱包连接部分 -->
+            <div class="wallet-section">
+                <button id="connectWallet" class="glow-button">Connect Wallet</button>
+                <p id="walletStatus" class="wallet-status"></p>
+            </div>
+
+            <!-- 游戏特性展示 -->
+            <div class="features-container">
+                <div class="feature-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <h3>Create</h3>
+                            <div class="zombie-icon">🧟</div>
+                        </div>
+                        <div class="card-back">
+                            <p>Generate unique zombies with DNA-based attributes</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- ... 其他特性卡片 ... -->
+            </div>
+
+            <!-- 示例僵尸展示 -->
+            <div class="zombie-preview" id="zombiePreview">
+                <!-- 这里将通过JS动态加载僵尸预览 -->
+            </div>
+        </main>
     </div>
 
-    <script>
-        var cryptoZombies;
-        var userAccount;
-
-        function startApp() {
-            var cryptoZombiesAddress = "0xc9462425564EFd29008d061a42DEebA0Df0464A2";
-            cryptoZombies = new web3js.eth.Contract(CryptoZombiesABI, cryptoZombiesAddress);
-
-            ethereum.request({ method: 'eth_requestAccounts' })
-                .then(function (accounts) {
-                    userAccount = accounts[0];
-                    getZombiesByOwner(userAccount).then(displayZombies);
-
-                    ethereum.on('accountsChanged', function (accounts) {
-                        if (accounts.length === 0) {
-                            alert("Please connect to MetaMask.");
-                            return;
-                        }
-                        userAccount = accounts[0];
-                        getZombiesByOwner(userAccount).then(displayZombies);
-                    });
-
-                    ethereum.on('chainChanged', function () {
-                        window.location.reload();
-                    });
-
-                    cryptoZombies.events.Transfer({ filter: { _to: userAccount } })
-                        .on('data', function (event) {
-                            console.log("New transfer event: ", event);
-                            getZombiesByOwner(userAccount).then(displayZombies);
-                        })
-                        .on("error", console.error);
-                })
-                .catch(function (error) {
-                    console.error("User denied account access", error);
-                    alert("You need to allow account access to use this DApp.");
-                });
-        }
-
-        function displayZombies(ids) {
-            $("#zombies").empty();
-
-            for (const id of ids) {
-                getZombieDetails(id).then(function (zombie) {
-                    var zombieHtml = generateZombieHtml(zombie);
-                    $("#zombies").append(zombieHtml);
-                }).catch(function (error) {
-                    console.error(`Error fetching zombie details: ${error.message}`);
-                });
-            }
-        }
-
-        function generateZombieHtml(zombie) {
-            var { headSrc, eyesSrc, mouthSrc, shirtSrc, handSrc, legsSrc } = getZombieImage(zombie);
-
-            return `
-                <div class="zombie">
-      <div class="zombie-image">
-        <img class="zombie-part zombie-head" src="${headSrc}" alt="Head">
-        <img class="zombie-part zombie-eyes" src="${eyesSrc}" alt="Eyes">
-        <img class="zombie-part zombie-mouth" src="${mouthSrc}" alt="Mouth">
-        <img class="zombie-part zombie-shirt" src="${shirtSrc}" alt="Shirt">
-        <img class="zombie-part zombie-hand" src="${handSrc}" alt="Hand">
-        <img class="zombie-part zombie-legs" src="${legsSrc}" alt="Legs">
-      </div>
-        
-            `;
-        }
-
-        function getZombieImage(zombie) {
-            var dna = zombie.dna;
-
-            var headId = parseInt(dna.substring(0, 2)) % 7 + 1;
-            var eyesId = parseInt(dna.substring(2, 4)) % 11 + 1;
-            var mouthId = parseInt(dna.substring(4, 6)) % 2 + 1;
-            var shirtId = parseInt(dna.substring(6, 8)) % 6 + 1;
-            var handId = parseInt(dna.substring(8, 10)) % 2 + 1;
-            var legsId = parseInt(dna.substring(10, 12)) % 6 + 1;
-
-            var headSrc = `zombieparts/head-${headId}@2x.png`;
-            var eyesSrc = `zombieparts/eyes-${eyesId}@2x.png`;
-            var mouthSrc = `zombieparts/mouth-${mouthId}@2x.png`;
-            var shirtSrc = `zombieparts/shirt-${shirtId}@2x.png`;
-            var handSrc = `zombieparts/hand-${handId}@2x.png`;
-            var legsSrc = `zombieparts/left-leg-${legsId}@2x.png`;
-
-            return { headSrc, eyesSrc, mouthSrc, shirtSrc, handSrc, legsSrc };
-        }
-
-        function createRandomZombie(name) { // Create a random zombie
-            $("#txStatus").text("Creating new zombie on the blockchain. This may take a while...");
-            return cryptoZombies.methods.createRandomZombie(name)
-                .send({ from: userAccount })
-                .on("receipt", function (receipt) { // When transaction is mined
-                    $("#txStatus").text("Successfully created" + name + "!"); // Update status
-                    getZombiesByOwner(userAccount).then(displayZombies); // Display zombies
-                })
-                .on("error", function (error) { // If there's an error
-                    $("#txStatus").text(error); // Update status
-                });
-        }
-
-        function feedOnKitty(zombieId, kittyId) { // Feed a zombie on a Kitty
-            $("#txStatus").text("Eating a kitty. This may take a while...");
-
-            return cryptoZombies.methods.feedOnKitty(zombieId, kittyId)
-                .send({ from: userAccount })
-                .on("receipt", function (receipt) { // When transaction is mined
-                    $("#txStatus").text("Successfully fed on a Kitty!"); // Update status
-
-                    getZombiesByOwner(userAccount).then(displayZombies); // Display zombies
-                })
-                .on("error", function (error) { // If there's an error
-                    $("#txStatus").text(error); // Update status
-                });
-        }
-
-        function levelUp(zombieId) { // Level up a zombie
-            $("#txStatus").text("Leveling up your zombie...");
-            return cryptoZombies.methods.levelUp(zombieId)
-                .send({ from: userAccount })
-                .on("receipt", function (receipt) { // When transaction is mined
-                    $("#txStatus").text("Power overwhelming! Zombie successfully leveled up");
-                })
-                .on("error", function (error) { // If there's an error
-                    $("#txStatus").text(error); // Update status
-                });
-
-        }
-
-        function attack(zombieId, targetId) {
-            $("#txStatus").text("Attacking... This may take a while.");
-
-            return cryptoZombies.methods.attack(zombieId, targetId)
-                .send({ from: userAccount })
-                .on("receipt", function (receipt) {
-                    $("#txStatus").text("Attack successful!");
-                    getZombiesByOwner(userAccount).then(displayZombies); // 更新僵尸列表
-                })
-                .on("error", function (error) {
-                    $("#txStatus").text(`Error: ${error.message}`);
-                });
-        }
-
-        function changeName(zombieId, newName) {
-            $("#txStatus").text("Changing name...");
-
-            return cryptoZombies.methods.changeName(zombieId, newName)
-                .send({ from: userAccount })
-                .on("receipt", function (receipt) {
-                    $("#txStatus").text("Zombie name changed successfully!");
-                    getZombiesByOwner(userAccount).then(displayZombies); // 更新僵尸列表
-                })
-                .on("error", function (error) {
-                    $("#txStatus").text(`Error: ${error.message}`);
-                });
-        }
-
-        function changeDna(zombieId, newDna) {
-            $("#txStatus").text("Changing DNA...");
-
-            return cryptoZombies.methods.changeDna(zombieId, newDna)
-                .send({ from: userAccount })
-                .on("receipt", function (receipt) {
-                    $("#txStatus").text("Zombie DNA changed successfully!");
-                    getZombiesByOwner(userAccount).then(displayZombies);
-                })
-                .on("error", function (error) {
-                    $("#txStatus").text(`Error: ${error.message}`);
-                });
-        }
-
-        function transfer(toAddress, zombieId) {
-            $("#txStatus").text("Transferring zombie...");
-
-            return cryptoZombies.methods.transfer(toAddress, zombieId)
-                .send({ from: userAccount })
-                .on("receipt", function (receipt) {
-                    $("#txStatus").text("Zombie transferred successfully!");
-                    getZombiesByOwner(userAccount).then(displayZombies); // 更新僵尸列表
-                })
-                .on("error", function (error) {
-                    $("#txStatus").text(`Error: ${error.message}`);
-                });
-        }
-
-        function getZombieBalance(ownerAddress) {
-            return cryptoZombies.methods.balanceOf(ownerAddress).call()
-                .then(function (balance) {
-                    console.log(`User ${ownerAddress} owns ${balance} zombies.`);
-                })
-                .catch(function (error) {
-                    console.error(`Error fetching balance: ${error.message}`);
-                });
-        }
-
-
-        function getZombieDetails(id) { // Get zombie details from the blockchain
-            return cryptoZombies.methods.zombies(id).call();
-        }
-
-        function zombieToOwner(id) { // Get zombie owner from the blockchain
-            return cryptoZombies.methods.ownerOf(id).call();
-        }
-
-        function getZombiesByOwner(owner) { // Get zombies by owner from the blockchain
-            return cryptoZombies.methods.getZombiesByOwner(owner).call();
-        }
-
-        window.addEventListener('load', function () {
-
-            if (typeof web3 !== 'undefined') {
-                web3js = new Web3(web3.currentProvider); // if metamask is running
-            } else {
-                alert("Please install MetaMask to use this DApp!");
-            }
-            startApp();
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="app.js"></script>
 </body>
 
 </html>

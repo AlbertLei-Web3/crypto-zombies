@@ -1,54 +1,269 @@
-.zombie-image {
+:root {
+    --primary-color: #2c0b0e;
+    --secondary-color: #8b0000;
+    --accent-color: #ff4646;
+    --text-color: #ffffff;
+    --background-color: #1a1a1a;
+    --card-color: rgba(44, 11, 14, 0.8);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Arial', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.landing-page {
     position: relative;
-    width: 200px; /* 设定整个僵尸图片的宽度 */
-    height: 400px; /* 设定整个僵尸图片的高度 */
-  }
-  
-  .zombie-head {
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* 雾气效果 */
+.fog-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.fog-img {
     position: absolute;
-    top: 10px; /* 根据需要调整 */
-    left: 50px; 
-    width: 200px; /* 设定头部的宽度 */
-    height: auto;
-  }
-  
-  .zombie-eyes {
+    height: 100vh;
+    width: 300vw;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.08) 25%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.08) 75%,
+        transparent 100%
+    );
+}
+
+.fog-img-first {
+    animation: fogAnimation 60s linear infinite;
+    opacity: 0.3;
+    filter: blur(8px);
+}
+
+.fog-img-second {
+    animation: fogAnimation 40s linear infinite reverse;
+    opacity: 0.2;
+    filter: blur(4px);
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.05) 35%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.05) 65%,
+        transparent 100%
+    );
+}
+
+@keyframes fogAnimation {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* 全局背景渐变 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        circle at center,
+        #2a2a2a 0%,
+        #1a1a1a 50%,
+        #0a0a0a 100%
+    );
+    z-index: -1;
+}
+
+/* 光效 */
+.landing-page::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent 0%,
+        rgba(255, 0, 0, 0.03) 50%,
+        transparent 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+    animation: lightEffect 10s ease-in-out infinite alternate;
+    opacity: 0.5;
+}
+
+@keyframes lightEffect {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.7; }
+}
+
+/* 主要内容样式 */
+.main-content {
+    position: relative;
+    z-index: 2;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.game-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.title {
+    font-family: 'Nosifer', cursive;
+    font-size: 4.5rem;
+    color: var(--accent-color);
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.5),
+                 0 0 20px rgba(255, 0, 0, 0.3),
+                 0 0 30px rgba(255, 0, 0, 0.1);
+    margin-bottom: 1rem;
+    animation: glowText 2s ease-in-out infinite alternate,
+               shakeText 5s ease-in-out infinite;
+    position: relative;
+}
+
+.subtitle {
+    font-family: 'Creepster', cursive;
+    font-size: 1.8rem;
+    color: var(--text-color);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+/* 钱包连接部分 */
+.wallet-section {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.glow-button {
+    background: var(--secondary-color);
+    color: var(--text-color);
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 0 10px rgba(139, 0, 0, 0.5);
+}
+
+.glow-button:hover {
+    background: var(--accent-color);
+    box-shadow: 0 0 20px rgba(255, 70, 70, 0.8);
+    transform: translateY(-2px);
+}
+
+/* 特性卡片样式 */
+.features-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin: 4rem 0;
+}
+
+.feature-card {
+    perspective: 1000px;
+    height: 200px;
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+}
+
+.feature-card:hover .card-inner {
+    transform: rotateY(180deg) scale(1.05);
+}
+
+.card-front, .card-back {
     position: absolute;
-    top: 70px;
-    left: 60px;
-    width: 60px;
-    height: auto;
-  }
-  
-  .zombie-mouth {
-    position: absolute;
-    top: 120px;
-    left: 65px;
-    width: 50px;
-    height: auto;
-  }
-  
-  .zombie-shirt {
-    position: absolute;
-    top: 200px;
-    left: 40px;
-    width: 120px;
-    height: auto;
-  }
-  
-  .zombie-hand {
-    position: absolute;
-    top: 250px;
-    left: 20px;
-    width: 40px;
-    height: auto;
-  }
-  
-  .zombie-legs {
-    position: absolute;
-    top: 300px;
-    left: 50px;
-    width: 100px;
-    height: auto;
-  }
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--card-color);
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 0 15px rgba(139, 0, 0, 0.3);
+    border: 1px solid rgba(255, 70, 70, 0.1);
+}
+
+.card-back {
+    transform: rotateY(180deg);
+    background: var(--secondary-color);
+}
+
+.zombie-icon {
+    font-size: 3rem;
+    margin: 1rem 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .title {
+        font-size: 3rem;
+    }
+
+    .subtitle {
+        font-size: 1.4rem;
+    }
+
+    .features-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@keyframes glowText {
+    0% {
+        text-shadow: 0 0 10px rgba(255, 0, 0, 0.5),
+                     0 0 20px rgba(255, 0, 0, 0.3),
+                     0 0 30px rgba(255, 0, 0, 0.1);
+    }
+    100% {
+        text-shadow: 0 0 20px rgba(255, 0, 0, 0.8),
+                     0 0 40px rgba(255, 0, 0, 0.5),
+                     0 0 60px rgba(255, 0, 0, 0.2);
+    }
+}
+
+@keyframes shakeText {
+    0%, 100% { transform: translateX(0); }
+    5%, 15% { transform: translateX(-1px); }
+    10%, 20% { transform: translateX(1px); }
+    95% { transform: translateX(0); }
+}
   
