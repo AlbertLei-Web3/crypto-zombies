@@ -18,7 +18,7 @@ contract ZombieAttack is ZombieHelper {
             ))) % _modulus; // return the pseudo-random number in the range 1-100
     }
 
-    function attack(uint _zombieId, uint _targetId) external  onlyOwnerOf(_zombieId) { // attack a zombie
+    function attack(uint _zombieId, uint _targetId) external onlyOwnerOf(_zombieId) { // attack a zombie
         Zombie storage myZombie = zombies[_zombieId]; // get the zombie to attack
         Zombie storage enemyZombie = zombies[_targetId]; // get the target zombie
         uint rand = randMod(100); // generate a pseudo-random number in the range 1-100
@@ -26,11 +26,11 @@ contract ZombieAttack is ZombieHelper {
             myZombie.winCount++; // increment the win count of the zombie
             myZombie.level++; // increment the level of the zombie
             enemyZombie.lossCount++; // increment the loss count of the target zombie
-            feedAndMultiply(_zombieId, enemyZombie.dna,"zombie"); // feed and multiply the zombie
+            feedAndMultiply(_zombieId, enemyZombie.dna, "zombie"); // feed and multiply the zombie
         } else {
             myZombie.lossCount++; // increment the loss count of the zombie
             enemyZombie.winCount++; // increment the win count of the target zombie
         }
-            _triggerCooldown(myZombie); // whatever happens, trigger the cooldown
+        _triggerCooldown(myZombie); // whatever happens, trigger the cooldown
     }
 }
