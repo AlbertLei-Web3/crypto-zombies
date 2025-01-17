@@ -105,5 +105,24 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(handleAccountsChanged)
             .catch(console.error);
     }
+
+    function updateZombieDisplay(dna) {
+        // 只处理可变部分
+        const variableParts = {
+            head: parseInt(dna.substring(0, 2)) % 7 + 1,    // 7种头型
+            eyes: parseInt(dna.substring(2, 4)) % 11 + 1,   // 11种眼睛
+            mouth: parseInt(dna.substring(4, 6)) % 2 + 1,   // 2种嘴型
+            shirt: parseInt(dna.substring(6, 8)) % 6 + 1    // 6种衣服
+        };
+
+        // 更新可变部件
+        Object.entries(variableParts).forEach(([part, id]) => {
+            const img = document.querySelector(`.${part}`);
+            if (img) {
+                console.log(`Updating variable part: ${part} with ID: ${id}`);
+                img.src = `zombieparts/${part}-${id}@2x.png`;
+            }
+        });
+    }
 });
 
