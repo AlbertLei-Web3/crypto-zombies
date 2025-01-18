@@ -6,102 +6,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CryptoZombies - NFT Game</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <div class="landing-page">
-        <!-- 背景动画效果 -->
-        <div class="fog-container">
-            <div class="fog-img fog-img-first"></div>
-            <div class="fog-img fog-img-second"></div>
-        </div>
-
-        <!-- 主要内容 -->
-        <main class="main-content">
-            <header class="game-header">
-                <h1 class="title">CryptoZombies</h1>
-                <p class="subtitle">Build Your Undead NFT Army</p>
-            </header>
-
-            <!-- 钱包连接部分 -->
+    <div class="background-overlay"></div>
+    <div class="container">
+        <header>
+            <h1 class="game-title">CryptoZombies</h1>
+            <p class="subtitle">Build Your Undead Army</p>
             <div class="wallet-section">
-                <button id="connectWallet" class="glow-button">Connect Wallet</button>
+                <button id="connectWallet" class="btn glow-effect">Connect Wallet</button>
                 <p id="walletStatus" class="wallet-status"></p>
             </div>
+        </header>
 
-            <!-- 游戏特性展示 -->
-            <div class="features-container">
-                <div class="feature-card">
-                    <div class="card-inner">
-                        <div class="card-front">
-                            <h3>Create</h3>
-                            <div class="zombie-icon">🧟</div>
-                        </div>
-                        <div class="card-back">
-                            <p>Generate unique zombies with DNA-based attributes</p>
-                        </div>
-                    </div>
+        <main>
+            <section class="create-section glass-effect">
+                <h2>Create New Zombie</h2>
+                <div class="create-form">
+                    <input type="text" id="zombieName" placeholder="Enter zombie name" class="input-glow">
+                    <button id="createZombieBtn" class="btn glow-effect">Create Zombie</button>
                 </div>
-                <!-- ... 其他特性卡片 ... -->
-            </div>
+            </section>
 
-            <!-- 示例僵尸展示 -->
-            <div class="zombie-preview" id="zombiePreview">
-                <!-- 这里将通过JS动态加载僵尸预览 -->
-            </div>
+            <section class="my-zombies">
+                <h2 class="section-title">My Zombie Army</h2>
+                <div id="zombiesList" class="zombies-grid"></div>
+            </section>
 
-            <!-- 在 main-content 中添加僵尸显示区域 -->
-            <div class="zombie-display">
-                <div class="zombie-container">
-                    <div id="zombieDisplay" class="zombie-image">
-                        <!-- 可变部分：头部五官组 -->
-                        <div class="zombie-group head-group">
-                            <img class="zombie-part head" src="zombieparts/head-1@2x.png" alt="head">
-                            <img class="zombie-part eyes" src="zombieparts/eyes-1@2x.png" alt="eyes">
-                            <img class="zombie-part mouth" src="zombieparts/mouth-1@2x.png" alt="mouth">
-                        </div>
-
-                        <!-- 可变部分：躯干穿衣组 -->
-                        <div class="zombie-group torso-group">
-                            <img class="zombie-part torso" src="zombieparts/torso-1@2x.png" alt="torso">
-                            <img class="zombie-part shirt" src="zombieparts/shirt-1@2x.png" alt="shirt">
-                        </div>
-
-                        <!-- 固定部分：右手臂组 -->
-                        <div class="zombie-group right-arm-group">
-                            <img class="zombie-part right-upper-arm" src="zombieparts/right-upper-arm-1@2x.png" alt="right-upper-arm">
-                            <img class="zombie-part right-forearm" src="zombieparts/right-forearm-1@2x.png" alt="right-forearm">
-                            <img class="zombie-part right-hand" src="zombieparts/hand1-1@2x.png" alt="right-hand">
-                        </div>
-
-                        <!-- 固定部分：左手臂组 -->
-                        <div class="zombie-group left-arm-group">
-                            <img class="zombie-part left-upper-arm" src="zombieparts/left-upper-arm-1@2x.png" alt="left-upper-arm">
-                            <img class="zombie-part left-forearm" src="zombieparts/left-forearm-1@2x.png" alt="left-forearm">
-                            <img class="zombie-part left-hand" src="zombieparts/hand-2-1@2x.png" alt="left-hand">
-                        </div>
-
-                        <!-- 固定部分：右腿组 -->
-                        <div class="zombie-group right-leg-group">
-                            <img class="zombie-part right-thigh" src="zombieparts/right-thigh-1@2x.png" alt="right-thigh">
-                            <img class="zombie-part right-leg" src="zombieparts/right-leg-1@2x.png" alt="right-leg">
-                            <img class="zombie-part right-feet" src="zombieparts/right-feet-1@2x.png" alt="right-feet">
-                        </div>
-
-                        <!-- 固定部分：左腿组 -->
-                        <div class="zombie-group left-leg-group">
-                            <img class="zombie-part left-thigh" src="zombieparts/right-thigh-1@2x.png" alt="left-thigh">
-                            <img class="zombie-part left-leg" src="zombieparts/right-leg-1@2x.png" alt="left-leg">
-                            <img class="zombie-part left-feet" src="zombieparts/right-feet-1@2x.png" alt="left-feet">
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div id="txStatus" class="transaction-status"></div>
         </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="web3.min.js"></script>
+    <script src="ABI/cryptozombies_abi.js"></script>
     <script src="app.js"></script>
 </body>
 

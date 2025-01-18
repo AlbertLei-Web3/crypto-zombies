@@ -1,128 +1,241 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const connectButton = document.getElementById('connectWallet');
-    const walletStatus = document.getElementById('walletStatus');
-    let currentAccount = null;
+class ZombieGame {
+    constructor() {
+        this.web3 = null;
+        this.contracts = {};
+        this.account = null;
+        this.init();
+    }
 
-    // 检查是否安装了 MetaMask
-    const checkIfWalletIsInstalled = () => {
-        const { ethereum } = window;
-        if (!ethereum) {
-            alert('Please install MetaMask!');
-            return false;
-        }
-        return true;
-    };
+    async init() {
+        await this.initWeb3();
+        this.bindEvents();
+        // 先连接钱包后再初始化合约
+        document.getElementById('connectWallet').addEventListener('click', () => this.connectWallet());
+    }
 
-    // 检查网络是否是 Sepolia
-    const checkNetwork = async (chainId) => {
-        const sepoliaChainId = '0xaa36a7'; // Sepolia 测试网的 chainId
-
-        if (chainId !== sepoliaChainId) {
-            try {
-                // 尝试切换到 Sepolia 网络
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: sepoliaChainId }],
-                });
-            } catch (error) {
-                // 如果网络不存在，添加网络
-                if (error.code === 4902) {
-                    try {
-                        await window.ethereum.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [{
-                                chainId: sepoliaChainId,
-                                chainName: 'Sepolia Test Network',
-                                nativeCurrency: {
-                                    name: 'Sepolia ETH',
-                                    symbol: 'SEP',
-                                    decimals: 18
-                                },
-                                rpcUrls: ['https://sepolia.infura.io/v3/'],
-                                blockExplorerUrls: ['https://sepolia.etherscan.io/']
-                            }]
-                        });
-                    } catch (addError) {
-                        console.error(addError);
-                    }
-                }
-                console.error(error);
+    async initWeb3() {
+        if (window.ethereum) {
+            this.web3 = new Web3(window.ethereum);
+            // 检查是否已连接
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            if (accounts.length > 0) {
+                this.account = accounts[0];
+                this.updateWalletStatus();
+                await this.initContracts();
+                this.updateUI();
             }
+
+            // 监听账户变化
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length > 0) {
+                    this.account = accounts[0];
+                    this.updateWalletStatus();
+                    this.updateUI();
+                } else {
+                    this.account = null;
+                    this.updateWalletStatus();
+                }
+            });
+        } else {
+            console.log('Please install MetaMask!');
         }
-    };
+    }
 
-    // 连接钱包
-    const connectWallet = async () => {
+    async connectWallet() {
         try {
-            if (!checkIfWalletIsInstalled()) return;
-
             const accounts = await window.ethereum.request({
                 method: 'eth_requestAccounts'
             });
+            this.account = accounts[0];
+            this.updateWalletStatus();
+            
+            // 连接成功后初始化合约
+            await this.initContracts();
+            this.updateUI();
+        } catch (error) {
+            console.error("Failed to connect wallet:", error);
+            this.showError("Failed to connect wallet");
+        }
+    }
 
-            currentAccount = accounts[0];
-            walletStatus.textContent = `Connected: ${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`;
+    updateWalletStatus() {
+        const walletStatus = document.getElementById('walletStatus');
+        const connectButton = document.getElementById('connectWallet');
+        
+        if (this.account) {
+            walletStatus.textContent = `Connected: ${this.account.slice(0, 6)}...${this.account.slice(-4)}`;
             connectButton.textContent = 'Connected';
             connectButton.disabled = true;
-
-            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-            await checkNetwork(chainId);
-
-        } catch (error) {
-            console.error(error);
-            alert('Failed to connect wallet: ' + error.message);
-        }
-    };
-
-    // 监听账户变化
-    const handleAccountsChanged = (accounts) => {
-        if (accounts.length === 0) {
-            walletStatus.textContent = 'Please connect wallet';
+        } else {
+            walletStatus.textContent = 'Not connected';
             connectButton.textContent = 'Connect Wallet';
             connectButton.disabled = false;
-            currentAccount = null;
-        } else if (accounts[0] !== currentAccount) {
-            currentAccount = accounts[0];
-            walletStatus.textContent = `Connected: ${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`;
-            connectButton.textContent = 'Connected';
-            connectButton.disabled = true;
         }
-    };
-
-    // 监听链变化
-    const handleChainChanged = (chainId) => {
-        window.location.reload();
-    };
-
-    // 添加事件监听器
-    if (window.ethereum) {
-        connectButton.addEventListener('click', connectWallet);
-        window.ethereum.on('accountsChanged', handleAccountsChanged);
-        window.ethereum.on('chainChanged', handleChainChanged);
-
-        // 检查是否已经连接
-        window.ethereum.request({ method: 'eth_accounts' })
-            .then(handleAccountsChanged)
-            .catch(console.error);
     }
 
-    function updateZombieDisplay(dna) {
-        // 只处理可变部分
-        const variableParts = {
-            head: parseInt(dna.substring(0, 2)) % 7 + 1,    // 7种头型
-            eyes: parseInt(dna.substring(2, 4)) % 11 + 1,   // 11种眼睛
-            mouth: parseInt(dna.substring(4, 6)) % 2 + 1,   // 2种嘴型
-            shirt: parseInt(dna.substring(6, 8)) % 6 + 1    // 6种衣服
-        };
+    async initContracts() {
+        try {
+            // 使用部署的合约地址
+            const contractAddress = '0x7A3E0DFf9B53fA0d3d1997903A48677399b22ce7'; // 替换为你的合约地址
 
-        // 更新可变部件
-        Object.entries(variableParts).forEach(([part, id]) => {
-            const img = document.querySelector(`.${part}`);
-            if (img) {
-                console.log(`Updating variable part: ${part} with ID: ${id}`);
-                img.src = `zombieparts/${part}-${id}@2x.png`;
-            }
-        });
+            // 使用已经加载的 ABI
+            this.contracts.ZombieOwnership = new this.web3.eth.Contract(
+                window.CryptoZombiesABI,
+                contractAddress
+            );
+
+            console.log("Contract initialized successfully");
+            
+            // 测试合约是否正确初始化
+            const name = await this.contracts.ZombieOwnership.methods.name().call();
+            console.log("Contract name:", name);
+            
+        } catch (error) {
+            console.error("Failed to init contracts:", error);
+            this.showError("Failed to initialize contracts");
+        }
     }
+
+    bindEvents() {
+        document.getElementById('createZombieBtn').addEventListener('click', () => this.createZombie());
+        document.getElementById('attackBtn').addEventListener('click', () => this.showAttackForm());
+        document.getElementById('levelUpBtn').addEventListener('click', () => this.levelUp());
+        document.getElementById('transferBtn').addEventListener('click', () => this.showTransferForm());
+    }
+
+    async createZombie() {
+        if (!this.account) {
+            this.showError("Please connect wallet first");
+            return;
+        }
+
+        const name = document.getElementById('zombieName').value;
+        if (!name) {
+            this.showError("Please enter a zombie name");
+            return;
+        }
+
+        try {
+            const result = await this.contracts.ZombieOwnership.methods
+                .createRandomZombie(name)
+                .send({ from: this.account });
+            
+            console.log("Zombie created:", result);
+            this.showSuccess(`Zombie "${name}" created successfully!`);
+            await this.updateUI();
+        } catch (error) {
+            console.error("Failed to create zombie:", error);
+            this.showError(error.message || "Failed to create zombie");
+        }
+    }
+
+    async getMyZombies() {
+        try {
+            const zombieIds = await this.contracts.ZombieOwnership.methods
+                .getZombiesByOwner(this.account)
+                .call();
+            
+            return Promise.all(zombieIds.map(id => 
+                this.contracts.ZombieOwnership.methods.zombies(id).call()
+            ));
+        } catch (error) {
+            console.error(error);
+            return [];
+        }
+    }
+
+    displayZombies(zombies) {
+        const zombiesList = document.getElementById('zombiesList');
+        zombiesList.innerHTML = zombies.map((zombie, index) => {
+            // 将 DNA 转换为更易读的格式
+            const dna = zombie.dna.toString().padStart(16, '0');
+            
+            return `
+                <div class="zombie-card">
+                    <h3>${zombie.name}</h3>
+                    <div class="zombie-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Level</div>
+                            <div class="stat-value">${zombie.level}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">DNA</div>
+                            <div class="stat-value">${dna.slice(0, 4)}...${dna.slice(-4)}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Wins</div>
+                            <div class="stat-value">${zombie.winCount}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Losses</div>
+                            <div class="stat-value">${zombie.lossCount}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Ready Time</div>
+                            <div class="stat-value">${new Date(zombie.readyTime * 1000).toLocaleString()}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 其他功能方法...
+    async attack(zombieId, targetId) {
+        try {
+            await this.contracts.ZombieOwnership.methods
+                .attack(zombieId, targetId)
+                .send({ from: this.account });
+            this.updateUI();
+        } catch (error) {
+            this.showError("Attack failed");
+        }
+    }
+
+    async transfer(zombieId, to) {
+        try {
+            await this.contracts.ZombieOwnership.methods
+                .transferFrom(this.account, to, zombieId)
+                .send({ from: this.account });
+            this.updateUI();
+        } catch (error) {
+            this.showError("Transfer failed");
+        }
+    }
+
+    showError(message) {
+        const txStatus = document.getElementById('txStatus');
+        txStatus.innerHTML = `Error: ${message}`;
+        txStatus.style.color = 'red';
+        // 3秒后清除错误消息
+        setTimeout(() => {
+            txStatus.innerHTML = '';
+        }, 3000);
+    }
+
+    showSuccess(message) {
+        const txStatus = document.getElementById('txStatus');
+        txStatus.innerHTML = `Success: ${message}`;
+        txStatus.style.color = 'green';
+        // 3秒后清除成功消息
+        setTimeout(() => {
+            txStatus.innerHTML = '';
+        }, 3000);
+    }
+
+    async updateUI() {
+        try {
+            const zombies = await this.getMyZombies();
+            this.displayZombies(zombies);
+        } catch (error) {
+            console.error("Failed to update UI:", error);
+            this.showError("Failed to load zombies");
+        }
+    }
+}
+
+// 初始化应用
+document.addEventListener('DOMContentLoaded', () => {
+    new ZombieGame();
 });
 
